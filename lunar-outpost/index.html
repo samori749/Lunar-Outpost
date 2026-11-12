@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lunar Outpost — NASA Hackathon</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <!-- LOADING SCREEN -->
+  <div id="loading-screen">
+    <div class="loading-content">
+      <div class="nasa-logo">
+        <svg viewBox="0 0 200 200" width="80" height="80">
+          <circle cx="100" cy="100" r="90" fill="none" stroke="#0b3d91" stroke-width="8"/>
+          <ellipse cx="100" cy="100" rx="90" ry="30" fill="none" stroke="#0b3d91" stroke-width="6" transform="rotate(-30,100,100)"/>
+          <text x="100" y="108" text-anchor="middle" font-size="32" font-weight="900" fill="#fc3d21" font-family="Arial Black">NASA</text>
+        </svg>
+      </div>
+      <h1>LUNAR OUTPOST</h1>
+      <p class="subtitle">Survive. Build. Thrive.</p>
+      <div class="loading-bar-container">
+        <div class="loading-bar" id="loading-bar"></div>
+      </div>
+      <p class="loading-text" id="loading-text">Initializing lunar environment...</p>
+    </div>
+  </div>
+
+  <!-- MAIN GAME CANVAS -->
+  <canvas id="game-canvas"></canvas>
+
+  <!-- HUD OVERLAY -->
+  <div id="hud" class="hidden">
+
+    <!-- TOP BAR: Resources -->
+    <div id="resource-bar">
+      <div class="res-panel">
+        <span class="res-icon">⚡</span>
+        <div class="res-info">
+          <span class="res-label">POWER</span>
+          <div class="res-bar-wrap"><div class="res-fill" id="bar-power"></div></div>
+          <span class="res-value" id="val-power">0 / 0 kW</span>
+        </div>
+      </div>
+      <div class="res-panel">
+        <span class="res-icon">💨</span>
+        <div class="res-info">
+          <span class="res-label">OXYGEN</span>
+          <div class="res-bar-wrap"><div class="res-fill" id="bar-oxygen"></div></div>
+          <span class="res-value" id="val-oxygen">0 %</span>
+        </div>
+      </div>
+      <div class="res-panel">
+        <span class="res-icon">💧</span>
+        <div class="res-info">
+          <span class="res-label">WATER</span>
+          <div class="res-bar-wrap"><div class="res-fill" id="bar-water"></div></div>
+          <span class="res-value" id="val-water">0 L</span>
+        </div>
+      </div>
+      <div class="res-panel">
+        <span class="res-icon">🌱</span>
+        <div class="res-info">
+          <span class="res-label">FOOD</span>
+          <div class="res-bar-wrap"><div class="res-fill" id="bar-food"></div></div>
+          <span class="res-value" id="val-food">0 days</span>
+        </div>
+      </div>
+      <div class="res-panel">
+        <span class="res-icon">☢️</span>
+        <div class="res-info">
+          <span class="res-label">RADIATION</span>
+          <div class="res-bar-wrap"><div class="res-fill danger" id="bar-radiation"></div></div>
+          <span class="res-value" id="val-radiation">0 mSv/d</span>
+        </div>
+      </div>
+      <div class="res-panel">
+        <span class="res-icon">😊</span>
+        <div class="res-info">
+          <span class="res-label">MORALE</span>
+          <div class="res-bar-wrap"><div class="res-fill" id="bar-morale"></div></div>
+          <span class="res-value" id="val-morale">100 %</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOP RIGHT: Mission info -->
+    <div id="mission-info">
+      <div class="mission-row">
+        <span class="mi-label">👥 CREW</span>
+        <span class="mi-value" id="mi-crew">3</span>
+      </div>
+      <div class="mission-row">
+        <span class="mi-label">📅 SOL</span>
+        <span class="mi-value" id="mi-sol">1</span>
+      </div>
+      <div class="mission-row">
+        <span class="mi-label">🌙 CYCLE</span>
+        <span class="mi-value" id="mi-cycle">DAY</span>
+      </div>
+      <div class="mission-row">
+        <span class="mi-label">🌡️ TEMP</span>
+        <span class="mi-value" id="mi-temp">+121°C</span>
+      </div>
+    </div>
+
+    <!-- BUILD PANEL (left side) -->
+    <div id="build-panel">
+      <h3>🏗️ BUILD</h3>
+      <div class="build-category">LIFE SUPPORT</div>
+      <button class="build-btn" data-type="habitat" title="Habitat Module">
+        <span class="build-icon">🏠</span>
+        <span class="build-name">Habitat</span>
+        <span class="build-cost">💰 500</span>
+      </button>
+      <button class="build-btn" data-type="o2generator" title="Oxygen Generator">
+        <span class="build-icon">💨</span>
+        <span class="build-name">O₂ Generator</span>
+        <span class="build-cost">💰 400</span>
+      </button>
+      <button class="build-btn" data-type="medibay" title="Medical Bay">
+        <span class="build-icon">🏥</span>
+        <span class="build-name">MediBay</span>
+        <span class="build-cost">💰 350</span>
+      </button>
+
+      <div class="build-category">POWER</div>
+      <button class="build-btn" data-type="solarpanel" title="Solar Array">
+        <span class="build-icon">☀️</span>
+        <span class="build-name">Solar Array</span>
+        <span class="build-cost">💰 200</span>
+      </button>
+      <button class="build-btn" data-type="reactor" title="Nuclear Reactor">
+        <span class="build-icon">⚛️</span>
+        <span class="build-name">Reactor</span>
+        <span class="build-cost">💰 1200</span>
+      </button>
+      <button class="build-btn" data-type="battery" title="Battery Storage">
+        <span class="build-icon">🔋</span>
+        <span class="build-name">Battery</span>
+        <span class="build-cost">💰 300</span>
+      </button>
+
+      <div class="build-category">RESOURCES</div>
+      <button class="build-btn" data-type="greenhouse" title="Greenhouse">
+        <span class="build-icon">🌿</span>
+        <span class="build-name">Greenhouse</span>
+        <span class="build-cost">💰 600</span>
+      </button>
+      <button class="build-btn" data-type="isru" title="Water Extractor">
+        <span class="build-icon">💧</span>
+        <span class="build-name">ISRU Miner</span>
+        <span class="build-cost">💰 450</span>
+      </button>
+
+      <div class="build-category">PROTECTION</div>
+      <button class="build-btn" data-type="radioshield" title="Radiation Shield">
+        <span class="build-icon">🛡️</span>
+        <span class="build-name">Rad Shield</span>
+        <span class="build-cost">💰 700</span>
+      </button>
+      <button class="build-btn" data-type="comms" title="Communications Array">
+        <span class="build-icon">📡</span>
+        <span class="build-name">Comms Array</span>
+        <span class="build-cost">💰 350</span>
+      </button>
+    </div>
+
+    <!-- BOTTOM: Event log -->
+    <div id="event-log">
+      <div id="event-entries"></div>
+    </div>
+
+    <!-- BOTTOM CENTER: Speed controls -->
+    <div id="speed-controls">
+      <button id="btn-pause" class="speed-btn active" title="Pause">⏸</button>
+      <button id="btn-play" class="speed-btn" title="Normal Speed">▶</button>
+      <button id="btn-fast" class="speed-btn" title="Fast">⏩</button>
+      <button id="btn-vfast" class="speed-btn" title="Very Fast">⏭</button>
+      <span id="speed-label">PAUSED</span>
+    </div>
+
+    <!-- BUDGET -->
+    <div id="budget-display">
+      <span>💰 BUDGET</span>
+      <span id="budget-val">3000</span>
+    </div>
+
+    <!-- BUILD MODE INDICATOR -->
+    <div id="build-indicator" class="hidden">
+      <div class="bi-inner">
+        <span id="bi-text">Click to place — ESC to cancel</span>
+        <div class="bi-ghost-info" id="bi-info"></div>
+      </div>
+    </div>
+
+    <!-- TOOLTIP -->
+    <div id="tooltip" class="hidden"></div>
+
+  </div>
+
+  <!-- BUILDING INFO MODAL -->
+  <div id="building-modal" class="modal hidden">
+    <div class="modal-inner">
+      <button class="modal-close" id="modal-close">✕</button>
+      <h2 id="modal-title">Building Name</h2>
+      <div id="modal-icon" class="modal-icon">🏠</div>
+      <div id="modal-stats"></div>
+      <div id="modal-edu" class="edu-box"></div>
+      <button class="modal-action danger" id="modal-demolish">🗑️ Demolish</button>
+    </div>
+  </div>
+
+  <!-- GAME OVER SCREEN -->
+  <div id="gameover-screen" class="hidden">
+    <div class="go-content">
+      <h1 id="go-title">MISSION FAILED</h1>
+      <p id="go-reason">The crew did not survive.</p>
+      <div id="go-stats"></div>
+      <button id="btn-restart">🔄 NEW MISSION</button>
+    </div>
+  </div>
+
+  <!-- WIN SCREEN -->
+  <div id="win-screen" class="hidden">
+    <div class="win-content">
+      <div class="win-badge">🏆</div>
+      <h1>MISSION ACCOMPLISHED!</h1>
+      <p id="win-stats"></p>
+      <button id="btn-restart-win">🔄 NEW MISSION</button>
+    </div>
+  </div>
+
+  <!-- START SCREEN -->
+  <div id="start-screen">
+    <div class="start-content">
+      <div class="start-logo">
+        <svg viewBox="0 0 200 200" width="70" height="70">
+          <circle cx="100" cy="100" r="90" fill="none" stroke="#0b3d91" stroke-width="8"/>
+          <ellipse cx="100" cy="100" rx="90" ry="30" fill="none" stroke="#0b3d91" stroke-width="6" transform="rotate(-30,100,100)"/>
+          <text x="100" y="108" text-anchor="middle" font-size="32" font-weight="900" fill="#fc3d21" font-family="Arial Black">NASA</text>
+        </svg>
+      </div>
+      <h1>🌙 LUNAR OUTPOST</h1>
+      <p class="tagline">Build a sustainable human presence on the Moon.<br>Balance power, life support, food, water and radiation<br>to keep your crew alive and thriving.</p>
+
+      <div class="start-features">
+        <div class="sf-item">⚡ Real Power Systems</div>
+        <div class="sf-item">☢️ Radiation Physics</div>
+        <div class="sf-item">🌱 ISRU Technology</div>
+        <div class="sf-item">🌙 Lunar Day/Night Cycle</div>
+        <div class="sf-item">🌞 Solar Flare Events</div>
+        <div class="sf-item">🏗️ 10 Building Types</div>
+      </div>
+
+      <div class="difficulty-select">
+        <label>MISSION DIFFICULTY</label>
+        <div class="diff-buttons">
+          <button class="diff-btn" data-diff="easy">🟢 Easy<br><small>Training Mission</small></button>
+          <button class="diff-btn active" data-diff="normal">🟡 Normal<br><small>Lunar Pioneer</small></button>
+          <button class="diff-btn" data-diff="hard">🔴 Hard<br><small>Apollo Veteran</small></button>
+        </div>
+      </div>
+
+      <button id="btn-start">🚀 LAUNCH MISSION</button>
+
+      <div class="controls-hint">
+        <strong>Controls:</strong> Left-drag to rotate · Scroll to zoom · Right-drag to pan · Click buildings to inspect
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
