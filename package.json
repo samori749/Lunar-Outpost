@@ -1,0 +1,19 @@
+{
+  "name": "lunar-outpost",
+  "version": "1.0.0",
+  "description": "NASA Hackathon — 3D Lunar Base Management Simulation",
+  "keywords": ["nasa", "space", "simulation", "three.js", "moon", "lunar", "hackathon"],
+  "type": "module",
+  "scripts": {
+    "start": "npx serve . -l 8080",
+    "dev": "npx serve . -l 8080 --open"
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "homepage": "https://github.com/your-username/lunar-outpost#readme",
+  "license": "MIT"
+}
